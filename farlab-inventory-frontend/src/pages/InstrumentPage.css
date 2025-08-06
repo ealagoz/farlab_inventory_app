@@ -1,0 +1,36 @@
+/* src/pages/InstrumentPage.css */
+
+/* 
+  This is the main container for the instrument page.
+ - We use Flexbox to arrange the title and the table vertically.
+ - 'height: 100%' makes it fill the available space given by Layout.css.
+*/
+.instrument-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  padding: 0 2rem;
+}
+
+/*
+  Container for the top section, just holdin the button.
+  - use flexbox to align the button to the far right.
+  - margin-bottom adds space between the button and the table.
+*/
+.page-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem; /* Adjust as needed for spacing */
+  width: 100%;
+}
+
+/* 
+  This makes the table container scrollable.
+  - 'flex-grow: 1' tells it to take up all available vertical space.
+ - 'overflow-y: auto' adds a scrollbar ONLY when the content is too tall.
+*/
+.instrument-page .table-container {
+  flex-grow: 1;
+  overflow-y: auto;
+}

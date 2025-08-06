@@ -1,0 +1,24 @@
+    # requirements.txt (Corrected for Python 3.13)
+
+    # --- Core FastAPI Stack (Python 3.13 Compatible) ---
+    fastapi==0.111.0
+    starlette==0.37.2
+    pydantic==2.7.1
+    uvicorn[standard]==0.29.0
+
+    # --- Database ---
+    sqlalchemy==2.0.41
+    psycopg2-binary==2.9.10
+    alembic==1.13.1
+
+    # --- Authentication ---
+    # --- passlib[bcrypt]==1.7.4 original before 23/07/2025
+    passlib==1.7.4
+    bcrypt==3.2.0
+    python-jose[cryptography]==3.3.0
+
+    # --- Other Dependencies ---
+    python-dotenv==1.0.1
+    pydantic-settings==2.2.1
+    email_validator==2.1.1
+    python-multipart==0.0.9

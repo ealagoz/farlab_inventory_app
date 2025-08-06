@@ -1,0 +1,100 @@
+/* src/components/Header.css */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #fff;
+  border-bottom: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  height: 80px;
+}
+
+/* Left side of the header (contains the title) */
+.header-left .app-title-link {
+  text-decoration: none; /* Remove the default underline from the link */
+  color: #343a40; /* A strong, dark grey for the text */
+  font-size: 1.5rem; /* Make the title larger */
+  font-weight: 600; /* Make it semi-bold */
+  display: flex;
+  align-items: center;
+}
+
+/* Optional: Add a hover effect for the title */
+.header-left .app-title-link:hover {
+  color: #0056b3; /* A primary blue color on hover */
+}
+
+/* Right side of the header (search and user info) */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px; /* A larger gap for better separation */
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* Adds space between the logo and the home link */
+}
+
+.logo-img {
+  height: 60px;
+  width: auto;
+}
+
+.logo a {
+  text-decoration: none;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #343a40;
+}
+
+.home-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.5rem 0.8rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.home-link:hover {
+  background-color: #555;
+  color: #fff;
+}
+
+.search-container {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0 2rem;
+}
+
+.user-menu {
+  /* Placeholder for user menu */
+  color: #495057;
+}
+
+.user-greeting {
+  margin-right: 1rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.logout-button {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.logout-button:hover {
+  background-color: #0056b3;
+}

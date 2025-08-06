@@ -1,0 +1,50 @@
+/* src/components/SearchResults.css */
+.search-results-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #f8f9fa; /* A light background to differentiate from the page */
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.results-header {
+  background-color: #f8f9fa;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #343a40; /* A more standard dark color */
+  border-bottom: 2px solid #dee2e6;
+  background-color: #f8f9fa;
+}
+
+.search-results-container .table-container {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.search-error,
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d; /* A softer color for informational text */
+  font-style: italic;
+}
+
+/* Container for multiple instrument tags to handle wrapping */
+.instrument-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem; /* Spacing between tags */
+  justify-content: center;
+}
+
+.instrument-tag {
+  background-color: #e9ecef;
+  color: #495057;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px; /* More rounded for a "tag" look */
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap; /* Prevent tags from breaking into two lines */
+}

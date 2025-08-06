@@ -1,0 +1,39 @@
+/* src/components/SearchBox.css */
+.search-box-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px; /* Or your desired max-width */
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 30px 10px 15px; /* Make space for the clear button */
+  font-size: 1rem;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.clear-button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #888;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.clear-button:hover {
+  color: #333;
+}

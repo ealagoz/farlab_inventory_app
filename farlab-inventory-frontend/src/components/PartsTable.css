@@ -1,0 +1,64 @@
+/* src/components/PartsTable.css */
+.table-container {
+  width: 100%;
+  overflow-x: auto; /* Allows horizontal scrolling on small screens */
+}
+
+.parts-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.parts-table td {
+  padding: 12px 8px;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.parts-table thead {
+  position: sticky;
+  padding: 20px;
+  top: 0;
+  z-index: 2;
+}
+
+.parts-table thead th {
+  padding: 16px 8px;
+  background-color: #343a40;
+  color: #f8f9fa;
+  font-weight: 600;
+  vertical-align: middle;
+  border-bottom: 1px solid #495057;
+  border-top: 1px solid #dee2e6;
+}
+
+.parts-table tbody {
+  position: relative;
+  z-index: 1;
+}
+
+.no-parts-message {
+  padding: 2rem;
+  text-align: center;
+  color: #6c757d;
+}
+
+/* 
+Add "zebra striping" to the table rows for readability.
+This targets every even-numbered row in the table body.
+*/
+.parts-table tbody tr:nth-child(even) {
+  background-color: #f8f9fa; /* A very light, modern grey */
+}
+
+/* 
+ Add a hover effect for better user feedback.
+ This highlights the row the user's mouse is currently over.
+ */
+.parts-table tbody tr:hover {
+  background-color: #e9ecef; /* A slightly darker, pleasant grey */
+}

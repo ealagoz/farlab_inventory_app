@@ -1,0 +1,50 @@
+# --- Python ---
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.py.class
+
+# C extensions
+*.so 
+
+# Distribution / packaging
+build/
+dist/
+eggs/
+*.egg-info/
+*.egg
+
+# Virtual Environments
+.env 
+.venv
+env/
+venv/
+ENV/
+
+# --- Test & Coverage ---
+# Unit test / coverage reports
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# --- IDEs & Editors ---
+# Visual Studio Code
+.vscode/
+
+# --- OS-specific ---
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# --- Logs ---
+*.log 
+
+# --- ENV variables ---
+.env.*.local 
+local_settings.py 
+
+# mypy cache
+.mypy_cache/

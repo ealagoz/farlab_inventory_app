@@ -1,0 +1,134 @@
+/* src/components/PartItem.css */
+.part-item:hover {
+  background-color: #f1f3f5;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.status-badge.status-in {
+  background-color: #28a745;
+}
+
+.status-badge.status-low {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.status-badge.status-out {
+  background-color: #dc3545;
+}
+
+.actions-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-edit,
+.btn-delete {
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-edit {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.btn-edit:hover {
+  background-color: #e0a800;
+}
+
+.btn-delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-delete:hover {
+  background-color: #c82333;
+}
+
+/* Example status styling */
+.status {
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+
+.status-new {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-used {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-refurbished {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+/* .stock-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} */
+
+.stock-btn {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  margin: 0 8px;
+  padding: 4px 8px;
+  transition: background-color 0.2s;
+}
+
+.stock-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.stock-quantity {
+  font-weight: bold;
+  min-width: 30px;
+  text-align: center;
+}
+
+.btn-increment {
+  background-color: #28a745; /* Green for success/add */
+  color: white;
+  border-color: #28a745;
+}
+
+.btn-increment:hover {
+  background-color: #218838; /* A darker green for the hover effect */
+  border-color: #1e7e34;
+}
+
+.btn-decrement {
+  background-color: #ffc107; /* Yellow for caution/remove */
+  color: #212529; /* Dark text for a light background */
+  border-color: #ffc107;
+}
+
+.btn-decrement:hover {
+  background-color: #e0a800; /* A darker yellow for the hover effect */
+  border-color: #d39e00;
+}
