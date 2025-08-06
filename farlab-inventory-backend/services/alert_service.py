@@ -59,7 +59,6 @@ def check_stock_and_create_alert(db: Session, part_id: int, background_tasks: Ba
     background_tasks.add_task(
         send_low_stock_email_notification,
         part=part,
-        user_email=user_email,
         admin_email=settings.ADMIN_EMAIL
     )
 

@@ -43,7 +43,7 @@ def _send_email(to_email: str, subject: str, body_html: str):
                      to_email, e, exc_info=True)
 
 
-def send_low_stock_email_notification(part: Part, user_email: str, admin_email: str):
+def send_low_stock_email_notification(part: Part, admin_email: str):
     """"
     Sends an email notification for low stock.
     """
@@ -61,13 +61,11 @@ def send_low_stock_email_notification(part: Part, user_email: str, admin_email: 
     </ul>
 """
 
-    # Send email
+    # Send email to the admin
     logger.info("Sending low stock notification for '%s' to '%s' and '%s'",
-                part.name, user_email, admin_email)
+                part.name, admin_email)
 
-    _send_email(user_email, subject, body)  # Activate later
-    if user_email != admin_email:
-        _send_email(admin_email, subject, body)
+    _send_email(admin_email, subject, body)
 
 
 def send_periodic_alert_summary(alerts: List[Part], admin_email: str):
