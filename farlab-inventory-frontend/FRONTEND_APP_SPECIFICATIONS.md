@@ -17,6 +17,7 @@ The application is built using the following technologies:
 ## 3. Project Structure
 
 The project is organized into the following directories and files:
+```
 /
 ├── .env.local
 ├── .gitignore
@@ -66,6 +67,7 @@ The project is organized into the following directories and files:
         ├── api.js
         ├── logger.js
         └── styleUtils.js
+```
 
 ## 4. Core Features
 
