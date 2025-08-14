@@ -24,6 +24,7 @@ The application is built using the following technologies:
 ## 3. Project Structure
 
 The project is organized into the following directories and files:
+```
 /
 ├── APP_SPECIFICATIONS.md
 ├── BACKEND_CODEBASE_OVERVIEW.md
@@ -72,6 +73,7 @@ The project is organized into the following directories and files:
 ├── logging_config.py
 ├── security.py
 └── validators.py
+```
 
 ## 4. Core Features
 
