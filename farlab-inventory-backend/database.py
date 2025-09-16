@@ -164,6 +164,9 @@ def get_or_create_background_engine():
 @contextmanager
 def get_background_db_session():
     """Context manager for background database sessions."""
+    # Ensure background engine is initialized before creating session
+    get_or_create_background_engine()
+    
     session = None
     try:
         session = BackgroundSessionLocal()
