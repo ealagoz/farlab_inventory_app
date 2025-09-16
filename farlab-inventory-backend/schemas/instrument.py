@@ -19,7 +19,7 @@ class InstrumentBase(BaseModel):
         None, description="Instrument description")
 
 
-class InstrumentCreate(BaseModel):
+class InstrumentCreate(InstrumentBase):
     """Schema for creating a new instrument."""
     pass
 
@@ -45,6 +45,3 @@ class InstrumentResponse(InstrumentBase):
 
     class Config:
         from_attributes = True  # For SQLAlchemy models
-
-
-

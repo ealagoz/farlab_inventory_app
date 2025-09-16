@@ -17,7 +17,7 @@ from utils.logging_config import get_logger
 
 # Create a new router
 router = APIRouter(
-    prefix="/api/instruments",
+    prefix="",
     tags=["Instruments"],
 )
 

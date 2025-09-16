@@ -1,0 +1,77 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+.dockerignore
+
+# Documentation
+README.md
+SECURITY.md
+*.md
+
+# Node.js
+**/.npm
+**/node_modules
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/.pnpm-debug.log*
+
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+**/env
+**/pip-log.txt
+**/pip-delete-this-directory.txt
+**/.tox
+**/.coverage
+**/.coverage.*
+**/.cache
+**/nosetests.xml
+**/coverage.xml
+**/*.cover
+**/*.py,cover
+**/.nyc_output
+
+# IDEs and editors
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+**/logs
+**/*.log
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+
+# Security files
+*.pem
+*.key
+*.crt
+
+# Build artifacts
+**/dist
+**/build
+**/.next
+secrets/
+/secrets/
+
+# Environment files
+# Catches ALL .env variants in any directory
+**/.env* 

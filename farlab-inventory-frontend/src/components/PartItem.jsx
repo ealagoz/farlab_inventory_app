@@ -13,10 +13,12 @@ export function PartItem({ part, index, onEdit, onDelete, onStockChange }) {
     onDelete(part.id); // Pass the part's ID up
   };
   const handleIncrement = () => {
-    onStockChange(part, part.quantity_in_stock + 1);
+    // onStockChange(part, part.quantity_in_stock + 1); // Changed 03/09/2025
+    onStockChange(part, +1);
   };
   const handleDecrement = () => {
-    onStockChange(part, part.quantity_in_stock - 1);
+    // onStockChange(part, part.quantity_in_stock - 1); // Changed 03/09/2025
+    onStockChange(part, -1);
   };
 
   return (

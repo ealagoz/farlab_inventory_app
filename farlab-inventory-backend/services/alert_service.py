@@ -1,6 +1,7 @@
 # Threshold checking and notification triggers
 # services/alert_service.py
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from fastapi import BackgroundTasks, Depends
 
 from models.part import Part
@@ -48,12 +49,16 @@ def check_stock_and_create_alert(db: Session, part_id: int, background_tasks: Ba
     logger.info("Part '%s' is low on stock. Creating new alert.", part.name)
 
     # Create the alert object and save it to the db
-    new_alert = Alert.create_low_stock_alert(part)
-    db.add(new_alert)
-    db.commit()
-
-    logger.info(
-        "New alert for part '%s' created and committed to the database.", part.name)
+    try:
+        new_alert = Alert.create_low_stock_alert(part)
+        db.add(new_alert)
+        db.commit()
+        logger.info(
+            "New alert for part '%s' created and committed to the database.", part.name)
+    except IntegrityError:
+        db.rollback()
+        logger.info(
+            "Active alert already exists for part '%s', skipping", part_id)
 
     # Que the email to be sent in the background
     background_tasks.add_task(

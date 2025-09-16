@@ -1,4 +1,9 @@
 # scripts/create_admin.py
+from utils.config import settings
+import os
+import sys
+from dotenv import load_dotenv, find_dotenv
+
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
@@ -6,8 +11,20 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from database import SessionLocal
 from models.user import User
 from utils.security import get_password_hash
-from utils.config import settings
 from utils.logging_config import get_logger
+
+# Find and load .env from project root
+dotenv_path = find_dotenv()
+if not dotenv_path:
+    print("Error: .env file not found. Make sure it's in the project root.")
+    sys.exit(1)
+load_dotenv(dotenv_path)
+
+# Add the project root to python path
+project_root = os.path.dirname(dotenv_path)
+sys.path.append(project_root)
+
+# Get config.py settings
 
 # Get a logger for this module
 logger = get_logger(__name__)

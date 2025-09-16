@@ -2,10 +2,7 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean
 from sqlalchemy.sql import func
 from models.base import Base
-from passlib.context import CryptContext
-
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from utils.security import verify_password
 
 
 class User(Base):
@@ -44,6 +41,11 @@ class User(Base):
     ), onupdate=func.now(), nullable=False)
     last_login = Column(DateTime(timezone=True), nullable=True)
 
+    @property
+    def full_name(self) -> str:
+        """Return the user's full name."""
+        return f"{self.first_name} {self.last_name}"
+
     def __repr__(self):
         return (
             f"User(id={self.id}, "
@@ -71,4 +73,4 @@ class User(Base):
         """
         Verify the provided password against the stored hash.
         """
-        return pwd_context.verify(password, self.hashed_password)
+        return verify_password(password, self.hashed_password)

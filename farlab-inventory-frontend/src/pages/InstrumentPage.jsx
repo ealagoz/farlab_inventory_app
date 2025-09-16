@@ -1,6 +1,5 @@
 // src/pages/InstrumentPage.jsx
-import React, { useCallback } from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import apiFetch from "../utils/api";
@@ -8,6 +7,7 @@ import logger from "../utils/logger";
 import PartsTable from "../components/PartsTable";
 import LoadingSpinner from "../components/LoadingSpinner";
 import PartForm from "../components/PartForm";
+import ConfirmDialog from "../components/ConfirmDialog";
 import "./InstrumentPage.css";
 
 export function InstrumentPage() {
@@ -22,9 +22,13 @@ export function InstrumentPage() {
   const [editingPart, setEditingPart] = useState(null); // null for 'add', part object for 'edit'
   const [currentInstrumentId, setCurrentInstrumentId] = useState(null);
 
-  logger.log(`--- InstrumentPage Re-render for [${instrumentType}] ---`);
-  logger.log(`State: instrumentsLoading=${instrumentsLoading}, 
-      page-specific loading=${loading}`);
+  // Delete confirmation dialog
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
 
   // Reusable fetch logic
   // Wrap fetchParts in useCallback so it can be called from other functions
@@ -36,7 +40,9 @@ export function InstrumentPage() {
       try {
         logger.log(`Starting to fetch parts for instrument ID: 
       ${instrumentId}`);
-        const data = await apiFetch(`/parts/?instrument_id=${instrumentId}`);
+        const data = await apiFetch(
+          `/api/parts/?instrument_id=${instrumentId}`
+        );
         logger.log("Successfully fetched parts:", data);
 
         // Ensure data is array
@@ -103,6 +109,25 @@ export function InstrumentPage() {
     // main instrument list changes
   }, [instrumentType, instruments, instrumentsLoading, fetchParts]);
 
+  // -- Handlers for delete confirm dialog --
+  const showConfirmDialog = (title, message, onConfirm) => {
+    setConfirmDialog({
+      isOpen: true,
+      title,
+      message,
+      onConfirm,
+    });
+  };
+
+  const hideConfirmDialog = () => {
+    setConfirmDialog({
+      isOpen: false,
+      title: "",
+      message: "",
+      onConfirm: null,
+    });
+  };
+
   // --- Handlers for CRUD operations ---
   const handleAddPart = () => {
     setEditingPart(null); // Ensure it is in 'add' mode
@@ -117,20 +142,33 @@ export function InstrumentPage() {
   const handleDeletePart = useCallback(
     async (partId) => {
       // Ask for confirmation before deleting
-      if (window.confirm("Are you sure you want to delete this part?")) {
-        try {
-          // Assumes backend is set up to handle DELETE /api/parts/:id
-          await apiFetch(`/parts/${partId}`, { method: "DELETE" });
-          // Refetch after a successfull delete
-          fetchParts(currentInstrumentId);
-          if (refreshAlertData) refreshAlertData(); // Refresh alerts on delete
-        } catch (err) {
-          logger.error("Failed to delete part:", err);
-          setError(err.message);
-        }
+      showConfirmDialog(
+        "Delete Part",
+        "Are you sure you want to delete this part? This action cannot be undone."
+      );
+      try {
+        // Assumes backend is set up to handle DELETE /api/parts/:id
+        await apiFetch(`/api/parts/${partId}`, { method: "DELETE" });
+        // Refetch after a successfull delete
+        fetchParts(currentInstrumentId);
+        refreshAlertData?.(); // Refresh alerts on delete
+      } catch (err) {
+        logger.error("Failed to delete part:", err);
+        setError(err.message);
+      } finally {
+        hideConfirmDialog(); // ensure dialog is closed if needed
       }
     },
-    [currentInstrumentId, fetchParts, refreshAlertData]
+    [
+      currentInstrumentId,
+      fetchParts,
+      refreshAlertData,
+      showConfirmDialog,
+      apiFetch,
+      logger,
+      setError,
+      hideConfirmDialog,
+    ]
   );
 
   const handleSavePart = useCallback(
@@ -141,6 +179,11 @@ export function InstrumentPage() {
       // Prepare a clean payload for the API, ensuring correct data types.
       const payload = {
         ...formData,
+        // Use instrument_ids from formData if provided, otherwise use current instrument
+        instrument_ids:
+          formData.instrument_ids && formData.instrument_ids.length > 0
+            ? formData.instrument_ids
+            : [currentInstrumentId],
         quantity_in_stock: parseInt(formData.quantity_in_stock || "0", 10),
         minimum_stock_level: parseInt(formData.minimum_stock_level || "0", 10),
         is_critical: formData.is_critical || false,
@@ -150,14 +193,14 @@ export function InstrumentPage() {
         if (editingPart) {
           // UPDATE (PATCH request)
           // Assumes backend is set up to handle PUT /api/parts/:id
-          await apiFetch(`/parts/${editingPart.id}`, {
+          await apiFetch(`/api/parts/${editingPart.id}`, {
             method: "PATCH",
             body: JSON.stringify(payload),
           });
         } else {
           // CREATE (POST request)
           // Assumes backend is set up to handle POST /api/parts/
-          await apiFetch(`/parts/`, {
+          await apiFetch(`/api/parts/`, {
             method: "POST",
             body: JSON.stringify(payload),
           });
@@ -185,15 +228,23 @@ export function InstrumentPage() {
   const handleStockChange = useCallback(
     async (part, newQuantity) => {
       // Ensure the new quantity is NOT negative
-      if (newQuantity < 0) {
+      if (part.quantity_in_stock + newQuantity < 0) {
         return;
       }
 
       try {
-        const updatedPartFromServer = await apiFetch(`/parts/${part.id}`, {
-          method: "PATCH",
-          body: JSON.stringify({ quantity_in_stock: newQuantity }),
-        });
+        console.log("Debug - part.quantity_in_stock:", part.quantity_in_stock);
+        console.log("Debug - newQuantity:", newQuantity);
+        const updatedPartFromServer = await apiFetch(
+          `/api/parts/${part.id}/stock`,
+          {
+            method: "POST", // Changed from "PATCH"
+            body: JSON.stringify({
+              quantity_change: newQuantity, // Changed from quantity_in_stock to quantity_change
+              reason: "Stock adjustment via UI", // Optional reason field
+            }),
+          }
+        );
 
         // Refetch only quantity_in_stock parameter
         setParts((currentParts) =>
@@ -261,8 +312,16 @@ export function InstrumentPage() {
           onSave={handleSavePart}
           onCancel={handleCancelForm}
           instrumentId={currentInstrumentId}
+          availableInstruments={instruments}
         />
       )}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={hideConfirmDialog}
+      />
     </div>
   );
 }

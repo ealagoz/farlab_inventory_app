@@ -9,7 +9,7 @@ from services import alert_service
 from utils.dependencies import get_db
 
 router = APIRouter(
-    prefix="/api/alerts",
+    prefix="",
     tags=["Alerts"],
 )
 

@@ -6,7 +6,7 @@ from models.base import Base
 
 class InstrumentPart(Base):
     """
-    Association table linking instruments to their parts. 
+    Association table linking instruments to their parts.
     This allows tracking which parts are used in which instruments.
     """
     __tablename__ = "instrument_parts"

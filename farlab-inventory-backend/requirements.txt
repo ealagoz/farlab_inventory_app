@@ -1,24 +1,36 @@
     # requirements.txt (Corrected for Python 3.13)
+    # Use compatible release pinning (~=) to allow patch updates for security
+    # Pinning Strategy Explanation:
+    # •  ~=X.Y.Z: Compatible release - allows X.Y.* but not X.(Y+1).0
 
     # --- Core FastAPI Stack (Python 3.13 Compatible) ---
-    fastapi==0.111.0
-    starlette==0.37.2
-    pydantic==2.7.1
-    uvicorn[standard]==0.29.0
+    fastapi~=0.111.0    # Allows 0.111.x but not 0.112.x
+    starlette~=0.37.2   # Allows patch updates for security
+    pydantic~=2.7.1     # Allows 2.7.x update 
+    uvicorn[standard]~=0.29.0
 
     # --- Database ---
-    sqlalchemy==2.0.41
-    psycopg2-binary==2.9.10
-    alembic==1.13.1
+    sqlalchemy~=2.0.41  # Allows 2.0.x but not 2.1.x
+    psycopg2-binary~=2.9.10 # Critical for security updates
+    alembic~=1.13.1
 
-    # --- Authentication ---
-    # --- passlib[bcrypt]==1.7.4 original before 23/07/2025
-    passlib==1.7.4
-    bcrypt==3.2.0
-    python-jose[cryptography]==3.3.0
+    # --- Authentication & Security---
+    passlib~=1.7.4  # Password hashing - security critical
+    bcrypt~=3.2.0   # Encryption - security critical
+    python-jose[cryptography]~=3.4.0    # JWT handling
+    ecdsa~=0.19.1       # Fix CVE-2024-23342 (HIGH)
 
     # --- Other Dependencies ---
-    python-dotenv==1.0.1
-    pydantic-settings==2.2.1
-    email_validator==2.1.1
-    python-multipart==0.0.9
+    python-dotenv~=1.0.1
+    pydantic-settings~=2.2.1
+    email_validator~=2.1.1
+    python-multipart~=0.0.9
+
+    # --- Scheduler ---                                                                   │
+    APScheduler~=3.10.4  
+
+    # --- Production Additions ---
+    # Add these for production deployment
+    # gunicorn~=21.2.0        # Production WSGI server
+    # prometheus-client~=0.19.0  # Metrics for monitoring
+    # structlog~=23.2.0       # Structured logging

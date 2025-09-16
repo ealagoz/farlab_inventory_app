@@ -30,7 +30,7 @@ export function useSearch(searchQuery) {
 
       try {
         const results = await apiFetch(
-          `/parts/search/?q=${debouncedSearchQuery}`
+          `/api/parts/search/?q=${debouncedSearchQuery}`
         );
         setSearchResults(results);
       } catch (err) {

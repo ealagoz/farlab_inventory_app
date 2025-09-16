@@ -2,12 +2,50 @@
 
 import logger from "./logger";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+// Determine the correct API URL based on environment
+const getApiBaseUrl = () => {
+  logger.log("Initializing API base URL...");
+
+  // The browser always needs to use localhost, not Docker service names
+  // Docker service names (like 'backend') only work inside the Docker network
+
+  if (import.meta.env.VITE_API_URL) {
+    console.log("Using VITE_API_URL:", import.meta.env.VITE_API_URL);
+    // If VITE_API_URL contains 'backend:', replace with localhost for browser
+    if (import.meta.env.VITE_API_URL.includes("backend:")) {
+      const browserUrl = import.meta.env.VITE_API_URL.replace(
+        "backend:",
+        "localhost:"
+      );
+      logger.log("Using configured VITE_API_URL");
+      return browserUrl;
+    }
+    return import.meta.env.VITE_API_URL;
+  }
+
+  // Default for browser access
+  const defaultUrl = "http://localhost:8000";
+  logger.log("Using default API URL");
+  return defaultUrl;
+};
+
+const API_BASE_URL = getApiBaseUrl();
+logger.log("Using final API_BASE_URL");
 
 // A utility for fetching data from the backend API
 async function apiFetch(endpoint, options = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
+  // Ensure endpoint starts with /
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+
+  // Add /api prefix if not already present
+  const apiEndpoint = cleanEndpoint.startsWith("/api")
+    ? cleanEndpoint
+    : `/api${cleanEndpoint}`;
+  // const apiEndpoint = cleanEndpoint; // Changed 03/09/2025 EA
+
+  const url = `${API_BASE_URL}${apiEndpoint}`;
+
+  logger.log("Making API request to:", url);
 
   // Default headers
   const headers = {
@@ -28,18 +66,14 @@ async function apiFetch(endpoint, options = {}) {
     });
 
     if (!response.ok) {
-      // Parse the JSON error body from the backend
       const errorData = await response.json().catch(() => ({}));
-      // Create a more informative message.
       const detail =
         errorData.detail || `HTTP error! status: ${response.status}`;
-      // If the detail is an object (like FASTAPI validation errors), stringify it.
       const errorMessage =
         typeof detail === "object" ? JSON.stringify(detail, null, 2) : detail;
       throw new Error(errorMessage);
     }
 
-    // If the response is successful but has no content
     if (response.status === 204) {
       return null;
     }
@@ -47,14 +81,14 @@ async function apiFetch(endpoint, options = {}) {
     return await response.json();
   } catch (error) {
     logger.error("API fetch error:", error.message);
-    // Re-throw the error so that calling components can handle it
+    logger.error("Failed URL:", url);
     throw error;
   }
 }
 
 export default apiFetch;
 
-// Utility functions for auth tokens
+// Rest of your existing functions...
 export const setAuthToken = (token) => {
   localStorage.setItem("authToken", token);
 };
@@ -67,28 +101,10 @@ export const getAuthToken = () => {
   return localStorage.getItem("authToken");
 };
 
-// --- Alert Endpoints ---
-/**
- * Fetches alerts from the backend.
- * By default, the backend will return only active alerts.
- * @returns {Promise<Array>} A promise that resolves to an array of alert.
- */
 export const getAlerts = () => {
-  return apiFetch("/alerts/?active_only=true");
+  return apiFetch("/api/alerts/?active_only=true");
 };
 
-/**
- * Fetches alert summary statistics.
- * @returns (Promise<Object>) A promise that resolves to the alert summary object.
- */
 export const getAlertSummary = () => {
-  return apiFetch("/alerts/summary");
+  return apiFetch("/api/alerts/summary");
 };
-
-// /**
-//  * Triggers a check for low stock parts and creates alerts.
-//  * @returns {Promise<Object>} A promise that resolves to the result of the check.
-//  */
-// export const checkLowStockAlerts = () => {
-//   return apiFetch("/alerts/check", { method: "POST" });
-// };

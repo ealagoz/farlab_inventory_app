@@ -27,7 +27,7 @@ export function NavigationTabs() {
       setInstrumentsLoading(true);
       try {
         logger.log("Setting global instrumentsLoading to TRUE.");
-        const instrumentsData = await apiFetch("/instruments/");
+        const instrumentsData = await apiFetch("/api/instruments/");
 
         logger.log("Successfully fetched instruments:", instrumentsData);
         setInstruments(instrumentsData || []); // Ensure data is an array

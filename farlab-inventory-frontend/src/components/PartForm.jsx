@@ -1,9 +1,17 @@
 // src/components/PartForm.jsx
 import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
+
 import "./PartForm.css";
 import logger from "../utils/logger";
 
-function PartForm({ part, onSave, onCancel, instrumentId }) {
+function PartForm({
+  part,
+  onSave,
+  onCancel,
+  instrumentId,
+  availableInstruments = [],
+}) {
   // This function ensures clean state for the form.
   const getInitialState = () => ({
     part_number: "",
@@ -15,6 +23,7 @@ function PartForm({ part, onSave, onCancel, instrumentId }) {
     instrument_id: "",
   });
   const [formData, setFormData] = useState(getInitialState());
+  const [selectedInstruments, setSelectedInstruments] = useState([]);
 
   useEffect(() => {
     // If a 'part' prop is passed, it means we are editing.
@@ -31,11 +40,23 @@ function PartForm({ part, onSave, onCancel, instrumentId }) {
         manufacturer: part.manufacturer || "",
         instrument_id: part.instrument_id || "",
       });
+
+      if (part.instruments && Array.isArray(part.instruments)) {
+        const instrumentIds = part.instruments.map((inst) => inst.id);
+        setSelectedInstruments(instrumentIds);
+      } else {
+        setFormData(getInitialState());
+        if (instrumentId) {
+          setSelectedInstruments([instrumentId]);
+        } else {
+          setSelectedInstruments([]);
+        }
+      }
     } else {
       // Reset the form to its initial, clean state
       setFormData(getInitialState());
     }
-  }, [part, instrumentId]); // Rerun this logic when the part to edit changes.
+  }, [part, instrumentId, availableInstruments]); // Rerun this logic when the part to edit changes.
 
   // This function handles changes for all form inputs
   const handleChange = (e) => {
@@ -46,11 +67,36 @@ function PartForm({ part, onSave, onCancel, instrumentId }) {
     }));
   };
 
+  // This function handles instrument selection
+  const handleInstrumentSelection = (instrumentId, isChecked) => {
+    setSelectedInstruments((prevSelected) => {
+      if (isChecked) {
+        return [...prevSelected, instrumentId];
+      } else {
+        return prevSelected.filter((id) => id != instrumentId);
+      }
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault(); // Prevent default browser form submission.
-    logger.log("Submitting form data:", formData);
+
+    let instrumentIds = [];
+
+    if (selectedInstruments.length > 0) {
+      instrumentIds = selectedInstruments;
+    } else if (instrumentId) {
+      instrumentIds = [instrumentId];
+    }
+
+    const payload = {
+      ...formData,
+      instrument_ids: instrumentIds,
+    };
+
+    logger.log("Submitting form data:", payload);
     // The onSave function will handle both creating and updating
-    onSave(formData);
+    onSave(payload);
   };
 
   return (
@@ -129,6 +175,28 @@ function PartForm({ part, onSave, onCancel, instrumentId }) {
               required
             />
           </div>
+          {availableInstruments && availableInstruments.length > 0 && (
+            <div className="form-group">
+              <label htmlFor="Instruments">Associate with Instruments:</label>
+              <div className="instrument-checkboxes">
+                {availableInstruments.map((instrument) => (
+                  <label key={instrument.id} className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={selectedInstruments.includes(instrument.id)}
+                      onChange={(e) =>
+                        handleInstrumentSelection(
+                          instrument.id,
+                          e.target.checked
+                        )
+                      }
+                    />
+                    <span className="instrument-name">{instrument.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="form-actions">
             <button type="submit" className="btn-save" onClick={handleSubmit}>
               Save
@@ -144,3 +212,36 @@ function PartForm({ part, onSave, onCancel, instrumentId }) {
 }
 
 export default PartForm;
+
+// Props validations
+PartForm.propTypes = {
+  part: PropTypes.shape({
+    part_number: PropTypes.string,
+    name: PropTypes.string,
+    quantity_in_stock: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]),
+    minimum_stock_level: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]),
+    stock_status: PropTypes.string,
+    manufacturer: PropTypes.string,
+    instrument_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    instruments: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+          .isRequired,
+      })
+    ),
+  }),
+  onSave: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  instrumentId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  availableInstruments: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    })
+  ),
+};

@@ -15,7 +15,7 @@ class Alert(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     # Related part
-    part_id = Column(Integer, ForeignKey("parts.id"),
+    part_id = Column(Integer, ForeignKey("parts.id", ondelete="CASCADE"),
                      nullable=False, index=True)
 
     # Alert information
@@ -34,7 +34,7 @@ class Alert(Base):
     resolved_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relationship
-    part = relationship("Part", backref="alerts")
+    part = relationship("Part", backref="alerts", passive_deletes=True)
 
     def __repr__(self):
         return f"<Alert(id={self.id}, part_id={self.part_id}, active={self.is_active})>"

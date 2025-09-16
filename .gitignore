@@ -1,0 +1,36 @@
+# Frontend (Vite + React)
+farlab-inventory-frontend/node_modules
+farlab-inventory-frontend/dist 
+farlab-inventory-frontend/dist-ssr 
+farlab-inventory-frontend/.vite
+farlab-inventory-frontend/.env* 
+farlab-inventory-frontend/.env.local
+farlab-inventory-frontend/.env.*.local 
+
+# Backend (Python)
+farlab-inventory-backend/__pycache__
+farlab-inventory-backend/venv
+farlab-inventory-backend/.venv
+farlab-inventory-backend/env
+farlab-inventory-backend/.env 
+farlab-inventory-backend/farlab_inventory.log
+
+# Posgresql secrets
+postgres_secret.txt
+
+# Additional security
+secrets/
+*.secret
+*.key
+
+# General
+.DS_Store
+*.log 
+.eslintcache
+
+# Virtual Environments
+.env 
+.venv
+env/
+venv/
+ENV/

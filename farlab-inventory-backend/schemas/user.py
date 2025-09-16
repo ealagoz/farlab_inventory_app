@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, EmailStr
-from typing import Optional
+from pydantic import BaseModel, Field, EmailStr, field_validator
+from typing import Optional, List
 from datetime import datetime
+import re
 
 
 class UserBase(BaseModel):
@@ -21,10 +22,40 @@ class UserBase(BaseModel):
     notes: Optional[str] = Field(None, description="Additional notes")
 
 
+def validate_password_strength(password: str) -> List[str]:
+    """Validate password meets security requirements."""
+    errors = []
+
+    if len(password) < 8:
+        errors.append("Password must be at least 8 characters long")
+    if not re.search(r'[A-Z]', password):
+        errors.append("Password must contain at least one uppercase letter")
+    if not re.search(r'[a-z]', password):
+        errors.append("Password must contain at least one lowercase letter")
+    if not re.search(r'\d', password):
+        errors.append("Password must contain at least one digit")
+    # if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+    #     errors.append("Password must contain at least one special character")
+
+    # Check for common passwords
+    common_passwords = {"password123", "admin123", "123456789", "qwerty123"}
+    if password.lower() in common_passwords:
+        errors.append("Password is to common")
+
+    return errors
+
+
 class UserCreate(UserBase):
     """Schema for creating a new user."""
     password: str = Field(..., min_length=8,
-                          description="User password (min 8 characters long)")
+                          description="User password")
+
+    @field_validator('password')
+    def validate_password(cls, v):
+        errors = validate_password_strength(v)
+        if errors:
+            raise ValueError("; ".join(errors))
+        return v
 
 
 class UserUpdate(BaseModel):
@@ -63,4 +94,11 @@ class PasswordChange(BaseModel):
     """Schema for changing password."""
     current_password: str = Field(..., description="Current password")
     new_password: str = Field(...,
-                              description="New password (min 8 characters long)")
+                              description="New password")
+
+    @field_validator('new_password')
+    def validate_new_password(cls, v):
+        errors = validate_password_strength(v)
+        if errors:
+            raise ValueError("; ".join(errors))
+        return v

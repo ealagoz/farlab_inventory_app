@@ -1,12 +1,15 @@
 # In utils/logging_config.py
 import logging
 import sys
+from pathlib import Path
 from logging.handlers import RotatingFileHandler
 
 # --- Configuration ---
 LOG_LEVEL = "INFO"  # Set the default log level (e.g. DEBUG, INFO, WARNING)
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s- %(message)s"
-LOG_FILE = "farlab_inventory.log"  # The name of the log file
+LOG_DIR = Path("/tmp/logs")  # Writable by non-root user
+LOG_DIR.mkdir(exist_ok=True)  # Create dir if not exist
+LOG_FILE = LOG_DIR / "farlab_inventory.log"  # The name of the log file
 MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 BACKUP_COUNT = 5  # Number of backup log files to keep
 
@@ -25,6 +28,19 @@ file_handler = RotatingFileHandler(
     LOG_FILE, maxBytes=MAX_BYTES, backupCount=BACKUP_COUNT
 )
 file_handler.setFormatter(formatter)
+
+try:
+    file_handler = RotatingFileHandler(
+        LOG_FILE, maxBytes=MAX_BYTES, backupCount=BACKUP_COUNT
+    )
+    file_handler.setFormatter(formatter)
+    file_logging_enabled = True
+except (OSError) as e:
+    # Fallback: Log only to console if file logging fails
+    print(f"Warning: Could not create log file {LOG_FILE}: {e}")
+    print("Falling back to console logging only.")
+    file_handler = None
+    file_logging_enabled = False
 
 # --- Logger Setup ---
 

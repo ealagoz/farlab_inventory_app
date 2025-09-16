@@ -1,0 +1,56 @@
+# ---------- Builder ----------
+FROM node:20-alpine3.21 AS builder
+
+# Accept build arguments for Vite environment variables
+ARG VITE_API_URL=http://localhost:8000
+ENV VITE_API_URL=${VITE_API_URL}
+
+# Security: Create build user
+RUN addgroup -g 10000 nodejs && \
+    adduser -u 10000 -G nodejs -s /sbin/nologin -D builduser
+
+WORKDIR /app
+RUN chown builduser:nodejs /app
+USER builduser
+
+# Copy package files first for better caching
+COPY --chown=builduser:nodejs farlab-inventory-frontend/package*.json ./
+
+# Install dependencies with optimizations
+RUN npm ci --prefer-offline --no-audit --fund=false \
+    && npm cache clean --force
+
+# Copy source and build optimized production bundle
+COPY --chown=builduser:nodejs farlab-inventory-frontend/ ./
+RUN npm run build
+
+# ---------- Asset Container (Ultra-minimal) ----------
+FROM scratch AS assets-only
+
+# Copy ONLY the built static files (no OS, no packages, ultimate security)
+COPY --from=builder /app/dist /dist
+
+# ---------- Final stage (for volume sharing) ----------
+FROM alpine:3.21 AS final
+
+# Install minimal dependencies for file operations
+RUN apk add --no-cache \
+    ca-certificates \
+    && adduser -u 1001 -D -s /sbin/nologin appuser
+
+WORKDIR /app
+
+# Copy built assets
+COPY --from=builder /app/dist ./dist
+
+# Set proper ownership
+RUN chown -R appuser:appuser /app
+
+USER appuser
+
+# Health check that validates assets exist
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=2 \
+    CMD test -f /app/dist/index.html || exit 1
+
+# Keep container running for volume access
+CMD ["sleep", "infinity"]

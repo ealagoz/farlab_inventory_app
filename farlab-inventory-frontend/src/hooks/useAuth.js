@@ -7,42 +7,32 @@ import apiFetch, {
 } from "../utils/api";
 import logger from "../utils/logger";
 
-// A helper function to decode the JWT token
-const decodeToken = (token) => {
-  try {
-    // Decode the payload part of the token
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return {
-      userId: payload.user_id,
-      username: payload.username,
-      exp: payload.exp,
-    };
-  } catch (error) {
-    logger.error("Failed to decode token:", error);
-    return null;
-  }
-};
-
 export function useAuth() {
   const [currentUser, setCurrentUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true); // To check initial auth status
 
   // Check for an existing token on initial component auth
   useEffect(() => {
-    const token = getAuthToken();
-    if (token) {
-      const decoded = decodeToken(token);
-      // Check if the token is expired
-      if (decoded && decoded.exp * 1000 > Date.now()) {
-        setCurrentUser(decoded);
-        // Ensure the token is et for API calls on refresh
-        setAuthToken(token);
-      } else {
-        // Clear expired token
-        removeAuthToken();
+    const validateExistingToken = async () => {
+      const token = getAuthToken();
+      if (token) {
+        try {
+          setAuthToken(token); // Set token for API calls
+          const userData = await apiFetch("/api/users/me");
+          setCurrentUser({
+            userId: userData.id,
+            username: userData.username,
+            email: userData.email,
+          });
+          logger.log("Token validated successfully");
+        } catch (error) {
+          logger.error("Token validation failed:", error);
+          removeAuthToken();
+        }
       }
-    }
-    setAuthLoading(false);
+      setAuthLoading(false);
+    };
+    validateExistingToken();
   }, []);
 
   const login = useCallback(async (username, password) => {
@@ -52,7 +42,7 @@ export function useAuth() {
       formData.append("username", username);
       formData.append("password", password);
 
-      const data = await apiFetch("/token", {
+      const data = await apiFetch("/api/token", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -61,8 +51,15 @@ export function useAuth() {
       });
       if (data.access_token) {
         setAuthToken(data.access_token);
-        const decoded = decodeToken(data.access_token);
-        setCurrentUser(decoded);
+
+        // Validate token with server instead of decoding
+        const userData = await apiFetch("/api/users/me");
+        setCurrentUser({
+          userId: userData.id,
+          username: userData.username,
+          email: userData.email,
+        });
+        logger.log("Login successful");
       } else {
         throw new Error("Login failed: No access token received.");
       }

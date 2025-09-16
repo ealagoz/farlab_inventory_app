@@ -10,6 +10,7 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 1rem;
 }
 
 .part-form-content {
@@ -18,7 +19,10 @@
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
 }
 
 .part-form-content h2 {
@@ -28,7 +32,11 @@
 }
 
 .form-group {
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.form-group:last-of-type {
+  margin-bottom: 1.5rem;
 }
 
 .form-group label {
@@ -45,6 +53,64 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 1rem;
+}
+
+/* Horizontal checkbox layout */
+.instrument-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px; /* Reduced gaps for better fit */
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #f9f9f9;
+  min-height: 40px; /* Ensure minimum height */
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  margin: 0; /* Remove all margins */
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  border: 1px solid transparent; /* For visual consistency */
+  min-height: 32px; /* Consistent height */
+}
+
+.checkbox-label:hover {
+  background-color: #e3f2fd;
+  border-color: #2196f3;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin: 0 8px 0 0; /* Only right margin */
+  flex-shrink: 0; /* Prevent checkbox from shrinking */
+  width: 16px;
+  height: 16px;
+}
+
+.instrument-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  color: #333;
+  flex-grow: 1; /* Take remaining space */
+  text-align: left;
+}
+
+/* Selected state styling */
+.checkbox-label:has(input:checked) {
+  background-color: #e8f5e8;
+  border-color: #4caf50;
+}
+
+.checkbox-label:has(input:checked) .instrument-name {
+  color: #2e7d32;
+  font-weight: 600;
 }
 
 .form-actions {
@@ -80,4 +146,58 @@
 
 .btn-cancel:hover {
   background-color: #ddd;
+}
+
+/* Custom scrollbar */
+.part-form-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.part-form-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.part-form-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.part-form-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .part-form-content {
+    padding: 1.5rem;
+    max-width: 95%;
+    max-height: 85vh;
+  }
+
+  .instrument-checkboxes {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .checkbox-label {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .part-form-content {
+    padding: 1rem;
+    max-height: 80vh;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .btn-save,
+  .btn-cancel {
+    width: 100%;
+  }
 }

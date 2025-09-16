@@ -64,4 +64,4 @@ class Instrument(Base):
     @property
     def parts(self):
         """Get all active parts used by this instrument."""
-        return [ip.part for ip in self.instrument_parts if ip.is_critical and ip.is_active]
+        return [ip.part for ip in self.instrument_parts if ip.is_active]

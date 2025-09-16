@@ -5,9 +5,6 @@ import "./PartsTable.css";
 import logger from "../utils/logger";
 
 export function PartsTable({ parts, onEdit, onDelete, onStockChange }) {
-  logger.log("--- PartsTable Component Rendered ---");
-  logger.log("Received 'parts' prop:", parts);
-
   if (!parts) {
     logger.log(
       "PartsTable decision: parts prop is undefined or null. Rendering nothing."
