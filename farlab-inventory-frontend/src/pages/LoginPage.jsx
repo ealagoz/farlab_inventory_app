@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
+import farlabLogo from "../assets/farlab_logo.png";
 import "./LoginPage.css";
 
 export function LoginPage() {
@@ -32,7 +33,12 @@ export function LoginPage() {
   return (
     <div className="login-container">
       <form onSubmit={handleSubmit} className="login-form">
-        <h2>Login</h2>
+        <div className="brand-header">
+          <img src={farlabLogo} alt="FARLAB Logo" className="brand-logo-image"/>
+          <h1 className="brand-title">FARLAB</h1>
+          <p className="brand-subtitle">Inventory Management System</p>
+        </div>
+        {/* <h2>Login</h2> */}
         {error && <p className="error-message">{error}</p>}
         <div className="form-group">
           <label htmlFor="username">Username</label>

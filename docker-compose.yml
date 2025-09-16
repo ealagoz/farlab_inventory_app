@@ -21,7 +21,8 @@ services:
   # 1) Database
   # -------------------------------------------------------------
   db:
-    image: postgres:17.2-alpine3.21
+    # image: postgres:17.2-alpine3.21 # Original working but less secure
+    image: postgres:17-alpine # Better security and maintainability
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_DB: ${DB_NAME}
