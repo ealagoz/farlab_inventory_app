@@ -8,6 +8,8 @@
 
 A modern, containerized inventory management system built with FastAPI backend, React frontend, PostgreSQL database, and Nginx reverse proxy. Features include user authentication, JWT tokens, email notifications, automated scheduling, and comprehensive API documentation.
 
+> **🔒 Security Notice**: This application uses a secure secrets management system. All sensitive data (passwords, API keys, tokens) are stored in encrypted files outside of version control. Please review the security configuration section before deployment.
+
 ## 🏗️ Architecture Overview
 
 The application follows a microservices architecture with the following components:
@@ -67,62 +69,38 @@ git clone https://github.com/yourusername/inventory_project.git
 cd inventory_project
 ```
 
-### 2. Create Required Secret Files
+### 2. Configure Secrets
 
-Create the following secret files in the project root:
+This application uses a secure secrets management system. Before starting:
 
-```bash
-# PostgreSQL database password
-echo "your_secure_db_password" > postgres_secret.txt
+1. **Create secrets directory**:
+   ```bash
+   mkdir -p secrets
+   ```
 
-# Admin user password
-echo "your_admin_password" > admin_secret.txt
+2. **Set up configuration files**:
+   ```bash
+   # Copy example configuration
+   cp .env.example .env
+   cp secrets/secrets.example.txt secrets/secrets.txt
+   ```
 
-# Application secret key (generate a secure random key)
-echo "$(openssl rand -hex 32)" > secret_key.txt
-```
+3. **Configure your values**:
+   - Edit `secrets/secrets.txt` with your actual secrets
+   - Edit `.env` with your non-sensitive configuration
+   - **Never commit secrets to version control**
 
-### 3. Configure Environment Variables
-
-Copy the example environment file and customize it:
-
-```bash
-cp .env.example .env
-# Edit .env with your preferred settings
-```
-
-Key variables to configure:
-
-```env
-# Database settings
-DB_USER=farlab_user
-DB_NAME=farlab_inventory
-
-# SMTP settings (for email notifications)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
-SENDER_EMAIL=your-email@gmail.com
-
-# Admin user settings
-ADMIN_EMAIL=admin@company.com
-ADMIN_FIRST_NAME=Admin
-ADMIN_LAST_NAME=User
-ADMIN_USERNAME=admin
-```
-
-### 4. Validate Configuration
+### 3. Validate Configuration
 
 ```bash
 # Test Docker Compose configuration
 docker compose config
 
-# Check if all required files exist
-ls -la *secret.txt .env
+# Verify secrets directory exists
+ls -la secrets/
 ```
 
-### 5. Build and Start Services
+### 4. Build and Start Services
 
 ```bash
 # Build and start all services in detached mode
@@ -132,7 +110,7 @@ docker compose up --build -d
 docker compose logs -f
 ```
 
-### 6. Verify Installation
+### 5. Verify Installation
 
 ```bash
 # Check service status
@@ -168,10 +146,9 @@ curl -I http://localhost/docs
 | **Backend Direct**  | http://localhost:8000/ | Direct FastAPI server         |
 | **Database**        | localhost:5432         | PostgreSQL (use local client) |
 
-### Default Login Credentials
+### Authentication
 
-- **Username**: `admin`
-- **Password**: Contents of `admin_secret.txt` file
+The application includes JWT-based authentication. Default admin credentials are configured through the secrets management system. See configuration files for setup instructions.
 
 ## 🛠️ Development Workflow
 
@@ -220,29 +197,30 @@ docker compose up --build frontend
 
 ```bash
 # Access PostgreSQL shell
-docker compose exec db psql -U farlab_user -d farlab_inventory
+docker compose exec db psql -U $DB_USER -d $DB_NAME
 
 # Backup database
-docker compose exec db pg_dump -U farlab_user farlab_inventory > backup.sql
+docker compose exec db pg_dump -U $DB_USER $DB_NAME > backup.sql
 
 # Restore database
-cat backup.sql | docker compose exec -T db psql -U farlab_user -d farlab_inventory
+cat backup.sql | docker compose exec -T db psql -U $DB_USER -d $DB_NAME
 ```
 
 ## 🔧 Configuration Management
 
-### Environment Files
+### Configuration Files
 
-- **`.env`**: Main environment configuration
-- **Secret files**: Sensitive data (passwords, keys)
+- **`.env`**: Non-sensitive environment configuration
+- **`secrets/secrets.txt`**: Encrypted sensitive data (not in version control)
 - **`nginx.conf`**: Reverse proxy configuration
 - **`docker-compose.yml`**: Service orchestration
 
-## Environment Setup
+### Security Best Practices
 
-1. Copy `.env.example` to `.env`
-2. Copy `secrets/secrets.example.txt` to `secrets/secrets.txt`
-3. Fill in your actual values
+- All sensitive data is stored in the `secrets/` directory
+- Secrets are mounted read-only into containers
+- No passwords or keys are stored in environment variables
+- Regular security scanning is built into the development workflow
 
 ### Nginx Configuration
 
@@ -445,13 +423,13 @@ docker system prune -a --volumes
 ```bash
 # Backup database
 mkdir -p backups
-docker compose exec db pg_dump -U farlab_user farlab_inventory > backups/db_$(date +%Y%m%d).sql
+docker compose exec db pg_dump -U $DB_USER $DB_NAME > backups/db_$(date +%Y%m%d).sql
 
 # Backup volumes
 docker run --rm -v inventory_project_postgres_data:/data -v $(pwd)/backups:/backup ubuntu tar czf /backup/postgres_data_$(date +%Y%m%d).tar.gz -C /data .
 
 # Restore from backup
-cat backups/db_20241201.sql | docker compose exec -T db psql -U farlab_user -d farlab_inventory
+cat backups/db_YYYYMMDD.sql | docker compose exec -T db psql -U $DB_USER -d $DB_NAME
 ```
 
 ## 🤝 Contributing

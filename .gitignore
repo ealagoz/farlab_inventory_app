@@ -1,36 +1,116 @@
-# Frontend (Vite + React)
-farlab-inventory-frontend/node_modules
-farlab-inventory-frontend/dist 
-farlab-inventory-frontend/dist-ssr 
-farlab-inventory-frontend/.vite
-farlab-inventory-frontend/.env* 
-farlab-inventory-frontend/.env.local
-farlab-inventory-frontend/.env.*.local 
+# =============================================================================
+# SECRETS & SENSITIVE DATA (CRITICAL - NEVER COMMIT)
+# =============================================================================
+# Secrets directory and files
+secrets/secrets.txt
+secrets/*.txt
+!secrets/*.example.txt
+!secrets/README.md
 
-# Backend (Python)
-farlab-inventory-backend/__pycache__
-farlab-inventory-backend/venv
-farlab-inventory-backend/.venv
-farlab-inventory-backend/env
-farlab-inventory-backend/.env 
-farlab-inventory-backend/farlab_inventory.log
-
-# Posgresql secrets
+# Legacy secret files (if any)
 postgres_secret.txt
-
-# Additional security
-secrets/
+admin_secret.txt
+secret_key.txt
 *.secret
 *.key
+*.pem
+*.p12
+*.pfx
 
-# General
+# Environment files with potentially sensitive data
+.env
+.env.local
+.env.production
+.env.*.local
+
+# =============================================================================
+# APPLICATION LOGS & RUNTIME FILES
+# =============================================================================
+*.log
+*.log.*
+logs/
+far_lab_inventory.log
+farlab_inventory.log
+
+# =============================================================================
+# FRONTEND (React + Vite)
+# =============================================================================
+farlab-inventory-frontend/node_modules/
+farlab-inventory-frontend/dist/
+farlab-inventory-frontend/dist-ssr/
+farlab-inventory-frontend/.vite/
+farlab-inventory-frontend/.env*
+farlab-inventory-frontend/.eslintcache
+farlab-inventory-frontend/coverage/
+
+# =============================================================================
+# BACKEND (Python/FastAPI)
+# =============================================================================
+farlab-inventory-backend/__pycache__/
+farlab-inventory-backend/*.pyc
+farlab-inventory-backend/*.pyo
+farlab-inventory-backend/*.pyd
+farlab-inventory-backend/.Python
+farlab-inventory-backend/venv/
+farlab-inventory-backend/.venv/
+farlab-inventory-backend/env/
+farlab-inventory-backend/.coverage
+farlab-inventory-backend/htmlcov/
+farlab-inventory-backend/.pytest_cache/
+
+# =============================================================================
+# DATABASE & BACKUPS
+# =============================================================================
+backups/
+*.sql
+*.dump
+*.sqlite
+*.db
+
+# =============================================================================
+# DEVELOPMENT & EDITOR FILES
+# =============================================================================
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
 .DS_Store
-*.log 
-.eslintcache
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Virtual Environments
-.env 
-.venv
-env/
+# =============================================================================
+# DOCKER & CONTAINERS
+# =============================================================================
+# Don't ignore docker-compose.yml, Dockerfile, etc. - they should be versioned
+# But ignore runtime files
+.docker/
+
+# =============================================================================
+# TEMPORARY & CACHE FILES
+# =============================================================================
+*.tmp
+*.temp
+.cache/
+.npm/
+.yarn/
+node_modules/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments (global patterns)
 venv/
+.venv/
+env/
 ENV/
+.env/
