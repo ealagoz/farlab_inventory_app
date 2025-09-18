@@ -10,7 +10,7 @@ const getApiBaseUrl = () => {
   // Docker service names (like 'backend') only work inside the Docker network
 
   if (import.meta.env.VITE_API_URL) {
-    console.log("Using VITE_API_URL:", import.meta.env.VITE_API_URL);
+    logger.log("Using VITE_API_URL:", import.meta.env.VITE_API_URL);
     // If VITE_API_URL contains 'backend:', replace with localhost for browser
     if (import.meta.env.VITE_API_URL.includes("backend:")) {
       const browserUrl = import.meta.env.VITE_API_URL.replace(

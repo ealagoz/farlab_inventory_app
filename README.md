@@ -228,7 +228,6 @@ The Nginx reverse proxy provides:
 
 - **Security headers**: XSS protection, content type sniffing prevention
 - **Rate limiting**: API endpoint protection
-- **WebSocket support**: For Vite HMR and real-time features
 - **Static asset handling**: Efficient serving of frontend assets
 - **SSL/TLS ready**: HTTPS configuration prepared
 
@@ -321,18 +320,16 @@ docker compose logs db
 docker compose exec backend python -c "from database import engine; print('DB Connected')"
 ```
 
-#### WebSocket/HMR Not Working
+#### Vite HMR Not Working (Development only)
 
-```bash
-# Check WebSocket proxy configuration
-docker compose exec nginx nginx -t
+# Check Vite dev server is running
+docker compose logs frontend
 
-# Restart nginx to reload config
-docker compose restart nginx
+# Restart frontend service
+docker compose restart frontend
 
-# Check if Vite dev server is running correctly
-docker compose logs frontend | grep -i websocket
-```
+# Check if development proxy is working
+curl http://localhost:5173/api/health
 
 ## 🔒 Security and Production
 

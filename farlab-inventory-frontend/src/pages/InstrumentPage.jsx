@@ -233,8 +233,8 @@ export function InstrumentPage() {
       }
 
       try {
-        console.log("Debug - part.quantity_in_stock:", part.quantity_in_stock);
-        console.log("Debug - newQuantity:", newQuantity);
+        logger.log("Debug - part.quantity_in_stock:", part.quantity_in_stock);
+        logger.log("Debug - newQuantity:", newQuantity);
         const updatedPartFromServer = await apiFetch(
           `/api/parts/${part.id}/stock`,
           {
