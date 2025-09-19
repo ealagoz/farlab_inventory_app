@@ -101,6 +101,7 @@ Thumbs.db
 *.temp
 .cache/
 .npm/
+.npmrc
 .yarn/
 node_modules/
 
