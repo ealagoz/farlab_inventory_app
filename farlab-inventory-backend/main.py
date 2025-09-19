@@ -2,8 +2,7 @@
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.security import OAuth2PasswordBearer
-from fastapi.openapi.utils import get_openapi
+
 from contextlib import asynccontextmanager
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -11,7 +10,7 @@ import threading
 from datetime import datetime
 import time
 
-from middleware.docs_protection import admin_docs_middleware
+
 from database import get_db, create_tables, init_app as init_database_app
 from services.scheduler import start_scheduler, scheduler_instance, scheduled_alert_job
 from utils.logging_config import get_logger
@@ -86,54 +85,8 @@ app = FastAPI(
     lifespan=lifespan,  # Pass lifespan manager here
     docs_url="/docs",
     redoc_url="/redoc",
-    openapi_url="/openapi.json",
-    # Swagger UI authentication
-    swagger_ui_parameters={
-        "persistAuthorization": True,  # Remember auth across page refreshes
-        "displayRequestDuration": True,
-        "tryItOutEnabled": True,
-        "filter": True,
-        "syntaxHighlight.theme": "agate",
-    }
+    openapi_url="/openapi.json"
 )
-
-# OAuth2 scheme for Swagger UI
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/token",  # Your token endpoint
-    scheme_name="JWT"
-)
-def custom_openapi():
-    """Custom OpenAPI schema with security definitions."""
-    if app.openapi_schema:
-        return app.openapi_schema
-    
-    openapi_schema = get_openapi(
-        title=app.title,
-        version=app.version,
-        description=app.description,
-        routes=app.routes,
-    )
-    
-    # Add OAuth2 security scheme for Swagger UI
-    openapi_schema["components"]["securitySchemes"] = {
-        "OAuth2PasswordBearer": {
-            "type": "oauth2",
-            "flows": {
-                "password": {
-                    "tokenUrl": "/api/token",
-                    "scopes": {}
-                }
-            }
-        }
-    }
-    
-    # Add global security requirement
-    openapi_schema["security"] = [{"OAuth2PasswordBearer": []}]
-    
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-app.openapi = custom_openapi
 
 # CORS Middleware Configuration
 
@@ -168,11 +121,7 @@ async def add_process_time_header(request: Request, call_next):
 
     return response
 
-# Add admin-only documentation protection
-@app.middleware("http")
-async def protect_docs_middleware(request: Request, call_next):
-    """Protect API documentation /docs and /redoc with admin authentication."""
-    return await admin_docs_middleware(request, call_next)
+
 
 
 # --- API Routers ---

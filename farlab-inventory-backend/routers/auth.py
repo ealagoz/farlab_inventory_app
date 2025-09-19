@@ -10,6 +10,7 @@ import time
 
 from database import get_db
 from models.user import User
+from utils.dependencies import get_current_user
 from utils.security import verify_password, create_access_token
 from schemas.token import Token
 
@@ -72,3 +73,14 @@ async def login_for_access_token(
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+# Authentication router for backend docs
+@router.get("/auth/verify-token")
+async def verify_token_for_docs(current_user: User = Depends(get_current_user)):
+    """Verify token for Nginx auth_request - admin only for docs access."""
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to access documentation"
+        )
+    return {"status": "authorized", "user": current_user.username}

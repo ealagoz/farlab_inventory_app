@@ -4,7 +4,7 @@
 networks:
   app-net:
     driver: bridge
-    # internal: true # Internal network for backend services
+    internal: true # Prevents direct external access to backend services
   web-net:
     driver: bridge # External network for nginx
 
@@ -51,8 +51,10 @@ services:
     deploy:
       resources:
         limits:
+          cpus: "1.00"
           memory: 512M
         reservations:
+          cpus: "0.25"
           memory: 256M
 
   # -------------------------------------------------------------
@@ -85,13 +87,13 @@ services:
       VITE_API_URL: http://localhost
     networks:
       - app-net
-    user: "0" # Run as root to avoid permission issues
+
     restart: "no"
     deploy:
       resources:
         limits:
           cpus: "0.25"
-          memory: 64M
+          memory: 128M
 
   # -------------------------------------------------------------
   # 3) Backend build
@@ -125,11 +127,16 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
-      - FRONTEND_URL=http://nginx
+      - FRONTEND_URL=http://localhost
       # Python optimization
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+      # Production optimizations
       - UVICORN_WORKERS=2
+      - UVICORN_LOG_LEVEL=info
+      - PYTHONPATH=/app
+      # Security headers
+      - SECURE_HEADERS=true
     volumes:
       - ./secrets:/app/secrets:ro # Secrets pattern
     expose:
@@ -157,8 +164,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.00"
-          memory: 512M
+          cpus: "1.00"    # Keep current - allows burst processing
+          memory: 512M    # Keep current - good safety margin
+        reservations:
+          cpus: "0.5"     # Guaranteed half CPU
+          memory: 256M    # Guaranteed minimum memory
 
   # -------------------------------------------------------------
   # 4) Nginx with dual networks
@@ -179,7 +189,10 @@ services:
       # SSL directory (create when ready)
       # - ./ssl:/etc/nginx/ssl:ro
     healthcheck:
-      test: ["CMD", "wget", "-nv", "-t1", "--spider", "http://127.0.0.1/health"]
+      test: [
+        "CMD", "sh", "-c", 
+        "wget -nv -t1 --spider http://127.0.0.1/health && wget -nv -t1 --spider http://127.0.0.1/api/health"
+      ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -199,8 +212,12 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.50"
-          memory: 128M
+          cpus: "0.50"    # Handle traffic spikes
+          memory: 128M    # Standard for reverse proxy + static files
+        reservations:      # ← Add this
+          cpus: "0.25"
+          memory: 64M
+
 
   # -------------------------------------------------------------
   # 5) Security scanners
@@ -216,6 +233,11 @@ services:
       - backend
     profiles:
       - security
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"    # Allow full burst for large images
+          memory: 512M    # Handle large container images
     command: [
         "image",
         "--format",
@@ -237,6 +259,11 @@ services:
       - app-net
     profiles:
       - security
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
     command:
       [
         "config",
@@ -258,6 +285,11 @@ services:
       - app-net
     profiles:
       - security
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
     command:
       [
         "fs",
@@ -269,3 +301,31 @@ services:
         "secret",
         "/workspace",
       ]
+# -------------------------------------------------------------
+  # 4) Backup service
+  # -------------------------------------------------------------
+  backup:
+    image: postgres:17-alpine
+    depends_on:
+      - db
+    volumes:
+      - ./backups:/backups
+      - ./secrets:/tmp/secrets:ro 
+    networks:
+      - app-net
+    profiles:
+      - backup
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_NAME=${DB_NAME}
+    command: >
+      sh -c "
+        export PGPASSWORD=$$(grep '^POSTGRES_PASSWORD=' /tmp/secrets/secrets.txt | cut -d'=' -f2 | tr -d ' \n');
+        pg_dump -h db -U ${DB_USER} -d ${DB_NAME} > /backups/backup_$$(date +%Y%m%d_%H%M%S).sql;
+        echo 'Backup completed';
+      "
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"    # I/O bound, minimal CPU needed
+          memory: 256M    # Buffer for database serialization
