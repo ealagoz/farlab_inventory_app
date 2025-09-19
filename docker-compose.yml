@@ -45,9 +45,11 @@ services:
       start_period: 30s
     security_opt:
       - no-new-privileges:true
+    read_only: true
+    cap_drop:
+      - ALL
     networks:
       - app-net
-    restart: unless-stopped
     deploy:
       resources:
         limits:
@@ -56,7 +58,7 @@ services:
         reservations:
           cpus: "0.25"
           memory: 256M
-
+    restart: unless-stopped
   # -------------------------------------------------------------
   # 2) Frontend build
   # -------------------------------------------------------------
@@ -70,9 +72,13 @@ services:
     command: >
       sh -c "
         echo '[frontend] Starting asset copy...';
+        
+        # Simple cleanup
         rm -rf /out/* || true;
+        
         if [ -d /app/dist ]; then
-          cp -a /app/dist/. /out/;
+          # Simple copy without trying to preserve ownership
+          cp -r /app/dist/* /out/ || true;
           echo '[frontend] ✅ Assets copied successfully';
           ls -la /out/;
         else
@@ -87,7 +93,9 @@ services:
       VITE_API_URL: http://localhost
     networks:
       - app-net
-
+    user: "0" # Run as root to ensure file copy permissions
+    security_opt:
+      - no-new-privileges:true
     restart: "no"
     deploy:
       resources:
@@ -141,8 +149,8 @@ services:
       - ./secrets:/app/secrets:ro # Secrets pattern
     expose:
       - "8000"
-    dns:
-      - 8.8.8.8
+    # dns:
+    #   - 8.8.8.8
     healthcheck:
       test:
         [
@@ -155,6 +163,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    read_only: true
+    cap_drop:
+      - ALL
     security_opt:
       - no-new-privileges:true
     init: true
@@ -199,6 +210,8 @@ services:
       start_period: 40s
     security_opt:
       - no-new-privileges:true
+    cap_drop:
+      - ALL
     read_only: true
     tmpfs:
       - /var/cache/nginx
@@ -225,8 +238,10 @@ services:
   security-scanner:
     image: aquasec/trivy:latest
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # - /var/run/docker.sock:/var/run/docker.sock:ro
       - trivy-cache:/root/.cache/
+    security_opt:
+      - no-new-privileges:true
     networks:
       - app-net
     depends_on:
@@ -255,6 +270,8 @@ services:
     volumes:
       - .:/workspace:ro
       - trivy-cache:/root/.cache/
+    security_opt:
+      - no-new-privileges:true
     networks:
       - app-net
     profiles:
@@ -281,6 +298,8 @@ services:
     volumes:
       - .:/workspace:ro
       - trivy-cache:/root/.cache/
+    security_opt:
+      - no-new-privileges:true
     networks:
       - app-net
     profiles:
@@ -311,6 +330,8 @@ services:
     volumes:
       - ./backups:/backups
       - ./secrets:/tmp/secrets:ro 
+    security_opt:
+      - no-new-privileges:true
     networks:
       - app-net
     profiles:

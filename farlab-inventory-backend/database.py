@@ -8,12 +8,13 @@ It also includes a function to initialize the database tables based on the defin
 
 # Standard library imports
 import os
+import time
 from contextlib import contextmanager
 from typing import Generator
 from urllib.parse import quote_plus
 
 # Third-party imports
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker, Session
 
 # Local imports
@@ -125,12 +126,42 @@ def initialize_database():
 
 def create_tables():
     """Creates all database tables defined in the models."""
-    try:
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables checked/created successfully")
-    except Exception as e:
-        logger.error(f"Could not create database tables: {e}")
-        raise
+    max_retries = 5
+    retry_delay = 2  # seconds
+    
+    for attempt in range(max_retries):
+        try:
+            # First, verify database is fully ready
+            with engine.connect() as conn:
+                # Test basic connectivity
+                conn.execute(text("SELECT 1"))
+                
+                # Check if pg_type system table is accessible
+                conn.execute(text("SELECT COUNT(*) FROM pg_type LIMIT 1"))
+                
+                # Verify we can access our target namespace
+                result = conn.execute(text("SELECT COUNT(*) FROM pg_namespace WHERE nspname = 'public'"))
+                if result.scalar() == 0:
+                    raise Exception("Public namespace not ready")
+            
+            logger.info(f"Database connectivity verified (attempt {attempt + 1})")
+            
+            # Now try to create tables
+            Base.metadata.create_all(bind=engine)
+            logger.info("Database tables checked/created successfully")
+            return  # Success - exit function
+            
+        except Exception as e:
+            logger.warning(f"Table creation attempt {attempt + 1} failed: {str(e)}")
+            
+            if attempt == max_retries - 1:  # Last attempt
+                logger.error("All table creation attempts failed")
+                raise
+            
+            # Wait before retry
+            logger.info(f"Retrying in {retry_delay} seconds...")
+            time.sleep(retry_delay)
+            retry_delay *= 1.5  # Exponential backoff
 
 #------------------------------------------------------------------------------
 # Session Management
