@@ -116,3 +116,32 @@ venv/
 env/
 ENV/
 .env/
+
+# =============================================================================
+# TERRAFORM 
+# =============================================================================
+# Local .terraform directories
+**/.terraform/*
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Terraform variable files
+*.tfvars
+*.tfvars.json
+
+# Override files (used for local changes)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+
+# Lock file (optional: ignore if you don't want to commit provider versions)
+.terraform.lock.hcl
