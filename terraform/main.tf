@@ -83,14 +83,6 @@ variable "allowed_ssh_ips" {
     default = ["129.241.0.0/16"]
 }
 
-# Server image disk size
-variable "root_volume_size" {
-    description = "Size of root volume in GB"
-    type = number
-    default = 40
-}
-
-
 data "openstack_images_image_v2" "ubuntu" {
   name = var.image_name
   most_recent = true
@@ -105,14 +97,6 @@ data "openstack_networking_network_v2" "network" {
 }
 
 # --- Data Resources ---
-# Add root volume resource
-resource "openstack_blockstorage_volume_v3" "root_volume" {
-    name = "inventory-root-volume"
-    description = "Root volume for inventory server"
-    size = var.root_volume_size
-    image_id = data.openstack_images_image_v2.ubuntu.id
-}
-
 # Security Group & Rules
 resource "openstack_networking_secgroup_v2" "inventory_sg" {
     name = "inventory-app-sg"
@@ -163,8 +147,7 @@ resource "openstack_compute_keypair_v2" "inventory_key" {
 resource "openstack_blockstorage_volume_v3" "postgres_data" {
     name = "postgres-data-volume"
     description = "Persistent volume for Inventory App PostgreSQL data"
-    size = 20 # Size in GB
-    # availability_zone = var.region 
+    size = 20 # Size in GB 
 
     # METADATA TAGS:
     metadata = {
@@ -181,16 +164,6 @@ resource "openstack_compute_instance_v2" "inventory_server" {
     flavor_id = data.openstack_compute_flavor_v2.flavor.id
     key_pair = openstack_compute_keypair_v2.inventory_key.name
     security_groups = [openstack_networking_secgroup_v2.inventory_sg.id]
-    # availability_zone = var.region
-
-    # Boot from custom volume
-    block_device {
-        uuid = openstack_blockstorage_volume_v3.root_volume.id
-        source_type = "volume"
-        destination_type = "volume"
-        boot_index = 0
-        delete_on_termination = true
-    }
 
     # Project tags
     metadata = {
