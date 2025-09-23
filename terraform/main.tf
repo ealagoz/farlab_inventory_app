@@ -14,8 +14,6 @@ terraform {
 provider "openstack" {
     auth_url = "https://api.nrec.no:5000"
     region = var.region
-    # Environment variables for credentials
-    # OS_USERNAME, OS_PASSWORD, OS_PROJECT_NAME, OS_USER_DOMAIN_NAME
 }
 
 # --- Variables ---
@@ -78,6 +76,13 @@ variable "secret_key" {
     sensitive = true
 }
 
+# Allowed IP ranges
+variable "allowed_ssh_ips" {
+    description = "List of IP ranges allowed to SSH"
+    type = list(string)
+    default = ["129.241.0.0/16"]
+}
+
 data "openstack_images_image_v2" "ubuntu" {
   name = var.image_name
   most_recent = true
@@ -96,14 +101,23 @@ data "openstack_networking_network_v2" "network" {
 resource "openstack_networking_secgroup_v2" "inventory_sg" {
     name = "inventory-app-sg"
     description = "Security group for inventory application"
+
+    # TAGS:
+    tags = [
+        "environment:production",
+        "application:inventory", 
+        "owner:farlab",
+        "project:uib-farlab-inventory"
+    ]
 }
 resource "openstack_networking_secgroup_rule_v2" "ssh" {
+    count = length(var.allowed_ssh_ips)
     direction = "ingress"
     ethertype = "IPv4"
     protocol = "tcp"
     port_range_min = 22
     port_range_max = 22
-    remote_ip_prefix = "0.0.0.0/0"
+    remote_ip_prefix = var.allowed_ssh_ips[count.index]
     security_group_id = openstack_networking_secgroup_v2.inventory_sg.id
 }
 resource "openstack_networking_secgroup_rule_v2" "http" {
@@ -127,14 +141,22 @@ resource "openstack_networking_secgroup_rule_v2" "https" {
 # SSH Key Pair
 resource "openstack_compute_keypair_v2" "inventory_key" {
     name = var.key_pair_name
-    public_key = file("~/.ssh/${var.key_pair_name}.pub")
+    public_key = file("/Users/jaz/.ssh/${var.key_pair_name}.pub")
 }
 # Volume for PostgreSQL Data
 resource "openstack_blockstorage_volume_v3" "postgres_data" {
     name = "postgres-data-volume"
     description = "Persistent volume for Inventory App PostgreSQL data"
-    size = 10 # Size in GB ===> Check this
-    availability_zone = var.region 
+    size = 10 # Size in GB
+    # availability_zone = var.region 
+
+    # METADATA TAGS:
+    metadata = {
+        Environment = "production"
+        Application = "inventory"
+        Owner       = "farlab" 
+        Project     = "uib-farlab-inventory"
+    }
 }
 # Compute Instance
 resource "openstack_compute_instance_v2" "inventory_server" {
@@ -142,8 +164,16 @@ resource "openstack_compute_instance_v2" "inventory_server" {
     image_id = data.openstack_images_image_v2.ubuntu.id
     flavor_id = data.openstack_compute_flavor_v2.flavor.id
     key_pair = openstack_compute_keypair_v2.inventory_key.name
-    security_groups = [openstack_networking_secgroup_v2.inventory_sg.name]
-    availability_zone = var.region
+    security_groups = [openstack_networking_secgroup_v2.inventory_sg.id]
+    # availability_zone = var.region
+
+    # Project tags
+    metadata = {
+        Environment = "production"
+        Application = "inventory"
+        Owner = "farlab"
+        Project = "uib-farlab-inventory"
+    }
 
     network {
         name = data.openstack_networking_network_v2.network.name
