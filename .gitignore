@@ -129,8 +129,19 @@ ENV/
 crash.log
 crash.*.log
 
+# Terraform execution script
+run.sh 
+terraform/run.sh 
+
+# Terraform plans and readable outputs
+terraform.plan 
+terraform-plan.txt
+*.plan 
+*-plan.txt
+
 # Terraform variable files
 *.tfvars
+*.tfvars.backup
 *.tfvars.json
 
 # Override files (used for local changes)
@@ -145,3 +156,8 @@ terraform.rc
 
 # Lock file (optional: ignore if you don't want to commit provider versions)
 .terraform.lock.hcl
+
+# =============================================================================
+# MISCELENAOUS
+# =============================================================================
+practical_commands.txt

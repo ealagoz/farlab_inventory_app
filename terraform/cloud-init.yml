@@ -1,11 +1,10 @@
-# terraform/cloud-init.yml
-# cloud-config
+#cloud-config
 package_update: true
 package_upgrade: true
 
 packages:
   - docker.io
-  - docker-compose-plugin
+  - docker-compose
   - git
   - ufw
   - xfsprogs # For formatting the volume with XFS filesystem
@@ -77,6 +76,12 @@ write_files:
       WantedBy=multi-user.target
 
 runcmd:
+  # Safe system updates
+  - apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
+  - apt-get -y autoremove
+  - apt-get -y autoclean
+  
   # Configure firewall
   - ufw allow ssh 
   - ufw allow 80/tcp 
@@ -105,5 +110,12 @@ runcmd:
   # Enable and start the application service
   - systemctl daemon-reload
   - systemctl enable --now inventory-app.service 
+
+  # Log if reboot is needed but don't auto-reboot
+  - |
+    if [ -f /var/run/reboot-required ]; then
+      echo "REBOOT REQUIRED: $(date)" | tee /var/log/reboot-required.log
+      echo "Manual reboot recommended after cloud-init completes" | tee -a /var/log/reboot-required.log
+    fi
 
 final_message: "Server setup complete! The Application is deploying."
