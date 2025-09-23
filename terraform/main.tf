@@ -29,7 +29,7 @@ variable "key_pair_name" {
 variable "flavor_name" {
     description = "NREC instance flavor"
     type = string
-    default = "m1.large" # 4 vCPU, 16 GB RAM ===> check this!
+    default = "m1.xlarge" # 4 vCPU, 16 GB RAM ===> check this!
 }
 variable "image_name" {
     description = "NREC instance image"

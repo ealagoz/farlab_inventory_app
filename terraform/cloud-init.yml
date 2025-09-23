@@ -41,10 +41,10 @@ write_files:
       # Add other secrets as needed
     permissions: '0600' # Make it readable by owner only
 
-  # Create a Docker Compose override file for produciton-specific settings
+  # Create a Docker Compose override file for production-specific settings
   - path: /opt/app/docker-compose.override.yml
     content: |
-      # This override file adapts the base compose file for produciton
+      # This override file adapts the base compose file for production
       version: '3.8'
       services:
         db:
@@ -68,7 +68,7 @@ write_files:
       Type=oneshot
       RemainAfterExit=yes
       WorkingDirectory=/opt/app 
-      # Build images if they donot exist, then start services in detached mode
+      # Build images if they do not exist, then start services in detached mode
       ExecStart=/usr/bin/docker compose up --build -d
       ExecStop=/usr/bin/docker compose down
       User=appuser 
@@ -97,7 +97,7 @@ runcmd:
 
   # Create application directory structure
   - mkdir -p /opt/app/secrets 
-  - chown -R appuser:appuser /opt/app ADMIN_PASSWORD
+  - chown -R appuser:appuser /opt/app
 
   # Clone the application repository as the appuser
   - su - appuser -c "git clone ${git_repo_url} /opt/app/source" 
