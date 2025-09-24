@@ -76,6 +76,18 @@ variable "secret_key" {
     sensitive = true
 }
 
+# Flavor image size
+variable "root_disk_size" {
+  description = "Size of the main data volume in GB"
+  type        = number
+  default     = 150
+}
+# variable "data_volume_size" {
+#     description = "Size of the separate data volume in GB"
+#     type = number
+#     default = 50
+# }
+
 # Allowed IP ranges
 variable "allowed_ssh_ips" {
     description = "List of IP ranges allowed to SSH"
@@ -93,16 +105,15 @@ data "openstack_compute_flavor_v2" "flavor" {
 }
 
 data "openstack_networking_network_v2" "network" {
-  name = "dualStack" # or your network name in NREC
+  name = "dualStack" # NREC standard dual-stack network
 }
 
 # --- Data Resources ---
-# Security Group & Rules
+# Security Group & Rules - NREC Compliant (without outgoing egress rules)
 resource "openstack_networking_secgroup_v2" "inventory_sg" {
     name = "inventory-app-sg"
     description = "Security group for inventory application"
 
-    # TAGS:
     tags = [
         "environment:production",
         "application:inventory", 
@@ -110,6 +121,8 @@ resource "openstack_networking_secgroup_v2" "inventory_sg" {
         "project:uib-farlab-inventory"
     ]
 }
+
+# SSH rules - IPv4
 resource "openstack_networking_secgroup_rule_v2" "ssh" {
     count = length(var.allowed_ssh_ips)
     direction = "ingress"
@@ -120,6 +133,8 @@ resource "openstack_networking_secgroup_rule_v2" "ssh" {
     remote_ip_prefix = var.allowed_ssh_ips[count.index]
     security_group_id = openstack_networking_secgroup_v2.inventory_sg.id
 }
+
+# HTTP rules - IPv4
 resource "openstack_networking_secgroup_rule_v2" "http" {
     direction = "ingress"
     ethertype = "IPv4"
@@ -129,6 +144,8 @@ resource "openstack_networking_secgroup_rule_v2" "http" {
     remote_ip_prefix = "0.0.0.0/0"
     security_group_id = openstack_networking_secgroup_v2.inventory_sg.id
 }
+
+# HTTPS rules - IPv4
 resource "openstack_networking_secgroup_rule_v2" "https" {
     direction = "ingress"
     ethertype = "IPv4"
@@ -138,32 +155,33 @@ resource "openstack_networking_secgroup_rule_v2" "https" {
     remote_ip_prefix = "0.0.0.0/0"
     security_group_id = openstack_networking_secgroup_v2.inventory_sg.id
 }
+
 # SSH Key Pair
 resource "openstack_compute_keypair_v2" "inventory_key" {
     name = var.key_pair_name
     public_key = file("/Users/jaz/.ssh/${var.key_pair_name}.pub")
 }
-# Volume for PostgreSQL Data
-resource "openstack_blockstorage_volume_v3" "postgres_data" {
-    name = "postgres-data-volume"
-    description = "Persistent volume for Inventory App PostgreSQL data"
-    size = 20 # Size in GB 
 
-    # METADATA TAGS:
-    metadata = {
-        Environment = "production"
-        Application = "inventory"
-        Owner       = "farlab" 
-        Project     = "uib-farlab-inventory"
-    }
-}
-# Compute Instance
+# The Main Compute Instance
 resource "openstack_compute_instance_v2" "inventory_server" {
     name = "inventory-production-server"
-    image_id = data.openstack_images_image_v2.ubuntu.id
     flavor_id = data.openstack_compute_flavor_v2.flavor.id
     key_pair = openstack_compute_keypair_v2.inventory_key.name
-    security_groups = [openstack_networking_secgroup_v2.inventory_sg.id]
+    security_groups = [
+        # openstack_networking_secgroup_v2.inventory_sg.id,
+        openstack_networking_secgroup_v2.inventory_sg.name,
+        "default" # Keep default for inter-instance communication
+        ]
+
+    # Block Device 1: The Root/Boot Disk
+    block_device {
+        uuid                  = data.openstack_images_image_v2.ubuntu.id
+        source_type           = "image"
+        destination_type      = "volume"
+        volume_size           = var.root_disk_size
+        boot_index            = 0
+        delete_on_termination = true
+    }
 
     # Project tags
     metadata = {
@@ -185,19 +203,20 @@ resource "openstack_compute_instance_v2" "inventory_server" {
         db_name = var.db_name
         admin_name = var.admin_name
         admin_email = var.admin_email
-
+        # SSH key for appuser
+        ssh_public_key = openstack_compute_keypair_v2.inventory_key.public_key
         # Secrets
         postgres_password = var.postgres_password
         admin_password = var.admin_password
         secret_key = var.secret_key
     }))
-}
 
-# Volume Attachment
-resource "openstack_compute_volume_attach_v2" "postgres_attach" {
-    instance_id = openstack_compute_instance_v2.inventory_server.id
-    volume_id = openstack_blockstorage_volume_v3.postgres_data.id
-    device = "/dev/vdb" # Check this ====>
+    # Ensure instance is created after all security group rules
+    depends_on = [
+        openstack_networking_secgroup_rule_v2.ssh,
+        openstack_networking_secgroup_rule_v2.http,
+        openstack_networking_secgroup_rule_v2.https
+    ]
 }
 
 # --- Outpts ---
@@ -208,4 +227,18 @@ output "instance_ip" {
 output "ssh_command" {
     description = "Command to SSH into the server"
     value = "ssh -i ~/.ssh/${var.key_pair_name} ubuntu@${openstack_compute_instance_v2.inventory_server.access_ip_v4}"
+}
+# Output for SSH debugging
+output "ssh_debug_info" {
+    description = "SSH connection information for debugging"
+    value = {
+        instance_ip = openstack_compute_instance_v2.inventory_server.access_ip_v4
+        instance_ipv6 = openstack_compute_instance_v2.inventory_server.access_ip_v6
+        # Use 'appuser' since that's what cloud-init creates, or keep 'ubuntu' as default
+        ssh_command_ipv4 = "ssh -i ~/.ssh/${var.key_pair_name} appuser@${openstack_compute_instance_v2.inventory_server.access_ip_v4}"
+        ssh_command_ipv6 = "ssh -i ~/.ssh/${var.key_pair_name} appuser@[${openstack_compute_instance_v2.inventory_server.access_ip_v6}]"
+        default_user = "ubuntu"
+        app_user = "appuser"
+        note = "Default user is 'ubuntu', but cloud-init creates 'appuser'. Use 'appuser' for application access."
+    }
 }
