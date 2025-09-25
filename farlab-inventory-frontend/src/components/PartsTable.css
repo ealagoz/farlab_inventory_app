@@ -2,6 +2,7 @@
 .table-container {
   width: 100%;
   overflow-x: auto; /* Allows horizontal scrolling on small screens */
+  -webkit-overflow-scrolling: touch; /* Improves scrolling on iOS */
 }
 
 .parts-table {

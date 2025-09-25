@@ -34,3 +34,12 @@
   flex-grow: 1;
   overflow-y: auto;
 }
+
+@media (max-width: 768px) {
+  .instrument-page {
+    padding: 0 1rem;
+  }
+  .page-header {
+    margin-bottom: 1rem;
+  }
+}
