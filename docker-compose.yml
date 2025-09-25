@@ -86,7 +86,7 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
       args:
-        VITE_API_URL: http://localhost
+        VITE_API_URL: ${VITE_API_URL}
     image: inventory-frontend
     user: "1001:1001" # Run as non-root to ensure security
     depends_on:
@@ -110,7 +110,7 @@ services:
       - frontend-assets:/out
     environment:
       NODE_ENV: production
-      VITE_API_URL: http://localhost
+      VITE_API_URL: ${VITE_API_URL}
     networks:
       - app-net
     restart: "no"
@@ -152,7 +152,7 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
-      - FRONTEND_URL=http://localhost
+      - FRONTEND_URL=${FRONTEND_URL}
       # Python optimization
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1

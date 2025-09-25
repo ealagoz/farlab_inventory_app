@@ -131,7 +131,8 @@ crash.*.log
 
 # Terraform execution script
 run.sh 
-terraform/run.sh 
+terraform/run.sh
+nrec-openrc.sh 
 
 # Terraform plans and readable outputs
 terraform.plan 
