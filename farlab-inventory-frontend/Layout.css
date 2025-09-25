@@ -16,6 +16,14 @@
   overflow-y: auto;
 }
 
+@media (max-width: 768px) {
+  /* CSS rules inside this block will only apply to screens
+     that are 768 pixels wide or less (i.e., tablets and phones). */
+  .app-content {
+    padding: 1rem;
+  }
+}
+
 .app-footer {
   padding: 1rem;
   text-align: center;
