@@ -211,16 +211,25 @@ services:
         condition: service_healthy
     ports:
       - "80:80"
-      # - "443:443" # For HTTPS # Keep commented until SSL is set up
+      - "443:443" # For HTTPS
+    
+  # IMPORTANT:
+      #  - /etc/letsencrypt is read-only here (Nginx only reads certs)
+      #  - /var/www/certbot serves the HTTP-01 challenge files
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - frontend-assets:/usr/share/nginx/html:ro # Read-only
-      # SSL directory (create when ready)
-      # - ./ssl:/etc/nginx/ssl:ro
+      - ./ssl/dhparam.pem:/etc/ssl/certs/dhparam.pem:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+      # If you serve built frontend assets from Nginx:
+      - frontend-assets:/usr/share/nginx/html:ro
+    networks:
+      - web-net # External access
+      - app-net # Internal communication with backend
     healthcheck:
       test: [
         "CMD", "sh", "-c", 
-        "wget -nv -t1 --spider http://127.0.0.1/health && wget -nv -t1 --spider http://127.0.0.1/api/health"
+        "wget -nv -t1 --spider --no-check-certificate https://127.0.0.1/health || wget -nv -t1 --spider http://127.0.0.1/health"
       ]
       interval: 30s
       timeout: 10s
@@ -234,9 +243,6 @@ services:
       - /tmp # Nginx needs tmp directory
     init: true
     restart: unless-stopped
-    networks:
-      - web-net # External access
-      - app-net # Internal communication with backend
     deploy:
       resources:
         limits:
@@ -245,6 +251,67 @@ services:
         reservations:      # ← Add this
           cpus: "0.25"
           memory: 64M
+
+
+# ---------------------------------------------------------------------------
+  # One-off job for initial certificate issuance.
+  # Run once (manually):  docker compose run --rm certbot-init
+  # Then reload Nginx:     docker compose exec nginx nginx -s reload
+  # ---------------------------------------------------------------------------
+  certbot-init:
+    image: certbot/certbot:latest
+    depends_on:
+      - nginx
+    environment:
+      DOMAIN: ${DOMAIN}
+      EMAIL: ${ADMIN_EMAIL}
+    entrypoint: ""
+    command:
+      - /bin/sh
+      - -c
+      - |
+        echo "Domain: $$DOMAIN"
+        echo "Email: $$EMAIL"
+        if [ -z "$$DOMAIN" ] || [ -z "$$EMAIL" ]; then
+          echo "ERROR: DOMAIN and EMAIL environment variables must be set"
+          exit 1
+        fi
+        certbot certonly \
+          --webroot \
+          --webroot-path=/var/www/certbot \
+          --email "$$EMAIL" \
+          --agree-tos \
+          --no-eff-email \
+          --non-interactive \
+          --rsa-key-size 4096 \
+          --domains "$$DOMAIN"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/www/certbot:/var/www/certbot
+    networks:
+      - web-net
+    profiles: ["init"]
+
+  # ---------------------------------------------------------------------------
+  # Renewal job. Schedule on host (cron/systemd) to run periodically:
+  #   docker compose run --rm certbot-renew && docker compose exec nginx nginx -s reload
+  # This container exits after running once (no infinite loops here).
+  # ---------------------------------------------------------------------------
+  certbot-renew:
+    image: certbot/certbot:latest
+    environment:
+      DOMAIN: ${DOMAIN}
+    entrypoint: ""
+    command:
+      - /bin/sh
+      - -c
+      - "certbot renew --webroot -w /var/www/certbot --quiet || exit 0"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/www/certbot:/var/www/certbot
+    networks:
+      - web-net
+    profiles: ["renew"]  # run only when explicitly invoked
 
 
   # -------------------------------------------------------------

@@ -107,7 +107,7 @@ app.add_middleware(
         "localhost", 
         "127.0.0.1", 
         "backend",
-        # "your-production-domain.com"  # Add when deploying
+        "fims.geo.uib.no"  # Production domain
         ]
 )
 

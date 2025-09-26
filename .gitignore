@@ -162,3 +162,4 @@ terraform.rc
 # MISCELENAOUS
 # =============================================================================
 practical_commands.txt
+ssl-setup.sh
